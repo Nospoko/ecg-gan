@@ -1,0 +1,8 @@
+__pycache__/
+data/
+results/
+outputs/
+checkpoints/
+wandb/
+tests/
+ecgdata/
