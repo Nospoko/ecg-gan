@@ -1,9 +1,10 @@
+import io
 import os
 
 import hydra
 import torch
-import imageio
 import torch.nn as nn
+from PIL import Image
 from tqdm import tqdm
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -48,6 +49,19 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     # save the figure to img/ folder
     fig.savefig(f"{chart_path}epoch_{epoch}_batch_{batch_idx}.png")
     return fig
+
+
+def save_progress_gif(fig_list, chart_path: str = "tmp/"):
+    imgs = []
+    for fig in fig_list:
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        buf.seek(0)
+        img = Image.open(buf)
+        imgs.append(img)
+
+    # Save as an animated GIF
+    imgs[0].save(f"{chart_path}progress.gif", save_all=True, append_images=imgs[1:], loop=0, duration=500)
 
 
 def train_step(
@@ -165,7 +179,7 @@ def main(cfg: DictConfig):
     # Fixed noise, used for visualizing training process
     fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
     # get loader:
-    _, train_loader, _ = create_dataloader(cfg, seed=cfg.system.seed)
+    train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
 
     all_figures = []
     # train epochs
@@ -183,7 +197,7 @@ def main(cfg: DictConfig):
         )
         all_figures.extend(fig_list)
     # create gif from figures
-    imageio.mimsave(f"{cfg.logger.chart_path}{name}.gif", all_figures, duration=1000)
+    save_progress_gif(all_figures, cfg.logger.chart_path)
 
 
 if __name__ == "__main__":
