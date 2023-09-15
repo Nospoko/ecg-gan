@@ -1,6 +1,7 @@
+import os
+
 import hydra
 import torch
-import wandb
 import imageio
 import torch.nn as nn
 from tqdm import tqdm
@@ -9,12 +10,22 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import OmegaConf, DictConfig
 
+import wandb
 from utils.dataloaders import set_seed, create_dataloader
 from model.dcgan import Generator, Discriminator, weights_init
 
 
+def create_folders(cfg: DictConfig):
+    logger_dict = cfg.logger
+
+    for _, value in logger_dict.items():
+        if value[-1] == "/":
+            value = value[:-1]
+            os.makedirs(value, exist_ok=True)
+
+
 @torch.no_grad()
-def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: int, batch_idx: int):
+def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: int, batch_idx: int, chart_path: str = "tmp/"):
     generator.eval()
 
     # Generate fake data using the generator and fixed noise
@@ -35,7 +46,7 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     fig.suptitle(f"Epoch {epoch}, Batch {batch_idx}")
     fig.tight_layout()
     # save the figure to img/ folder
-    fig.savefig(f"img/epoch_{epoch}_batch_{batch_idx}.png")
+    fig.savefig(f"{chart_path}epoch_{epoch}_batch_{batch_idx}.png")
     return fig
 
 
@@ -102,7 +113,7 @@ def train_step(
             }
         )
         if batch_idx % cfg.train.log_interval == 0:
-            fig = visualize_training(generator, fixed_noise, epoch, batch_idx)
+            fig = visualize_training(generator, fixed_noise, epoch, batch_idx, cfg.logger.chart_path)
             fig_list.append(fig)
     return fig_list
 
@@ -116,6 +127,7 @@ def main(cfg: DictConfig):
         config=OmegaConf.to_container(cfg, resolve=True),
     )
     set_seed(cfg.system.seed)
+    create_folders(cfg)
 
     # Initialize models
     discriminator_net = Discriminator(
@@ -171,7 +183,7 @@ def main(cfg: DictConfig):
         )
         all_figures.extend(fig_list)
     # create gif from figures
-    imageio.mimsave(f"img/{name}.gif", all_figures, duration=1000)
+    imageio.mimsave(f"{cfg.logger.chart_path}{name}.gif", all_figures, duration=1000)
 
 
 if __name__ == "__main__":
