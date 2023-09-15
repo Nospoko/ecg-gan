@@ -129,6 +129,17 @@ def train_step(
         if batch_idx % cfg.train.log_interval == 0:
             fig = visualize_training(generator, fixed_noise, epoch, batch_idx, cfg.logger.chart_path)
             fig_list.append(fig)
+
+    checkpoint = {
+        "epoch": epoch,
+        "generator_state_dict": generator.state_dict(),
+        "discriminator_state_dict": discriminator.state_dict(),
+        "gen_optimizer_state_dict": gen_optimizer.state_dict(),
+        "disc_optimizer_state_dict": disc_optimizer.state_dict(),
+        "config": cfg,
+        "fixed_noise": fixed_noise,
+    }
+    torch.save(checkpoint, f"{cfg.logger.checkpoint_path}GAN_epoch_{epoch}.pth")
     return fig_list
 
 
