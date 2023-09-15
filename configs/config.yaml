@@ -1,0 +1,28 @@
+train:
+  batch_size: 64
+  epochs: 1
+  log_interval: 1100
+  lr: 1e-4
+
+logger:
+  checkpoint_path: "checkpoints/"
+  chart_path: "tmp/"
+
+system:
+  device: "cuda:0"
+  seed: 42
+
+discriminator:
+  input_channels: 2
+  input_size: 1000
+  neurons: [64, 128, 256, 512]
+  beta: 0.5
+
+generator:
+  nz: 128
+  output_channels: 2
+  output_size: 1000
+  neurons: [64, 128, 256, 512]
+  beta: 0.5
+
+run_date: ${now:%Y_%m_%d_%H_%M}
