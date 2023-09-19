@@ -91,29 +91,29 @@ def train_step(
         # train discriminator
         disc_optimizer.zero_grad()
         label = torch.full((batch_size,), real_label, dtype=torch.float, device=cfg.system.device)
-        output = discriminator(real_data).view(-1)
-        discriminator_error_real = criterion(output, label)
+        disc_real_output = discriminator(real_data).view(-1)
+        discriminator_error_real = criterion(disc_real_output, label)
         discriminator_error_real.backward()
-        D_x = output.mean().item()
+        D_x = disc_real_output.mean().item()  # Mean discriminator output for real data
 
         # train generator
         noise = torch.randn(batch_size, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
         fake_data = generator(noise)
         label.fill_(fake_label)
-        output = discriminator(fake_data.detach()).view(-1)
+        disc_fake_output = discriminator(fake_data.detach()).view(-1)
 
-        discriminator_error_fake = criterion(output, label)
+        discriminator_error_fake = criterion(disc_fake_output, label)
         discriminator_error_fake.backward()
-        D_G_z1 = output.mean().item()
+        D_G_z1 = disc_fake_output.mean().item()  # Discriminator's average output when evaluating the fake data
         discriminator_error = discriminator_error_real + discriminator_error_fake
         disc_optimizer.step()
         generator.zero_grad()
 
         label.fill_(real_label)
-        output = discriminator(fake_data).view(-1)
-        generator_error = criterion(output, label)
+        disc_output_after_update = discriminator(fake_data).view(-1)
+        generator_error = criterion(disc_output_after_update, label)
         generator_error.backward()
-        D_G_z2 = output.mean().item()
+        D_G_z2 = disc_output_after_update.mean().item()  # Discriminator's output after updating the generator, fake data
         gen_optimizer.step()
 
         # log to wandb
@@ -186,7 +186,7 @@ def main(cfg: DictConfig):
         betas=(cfg.generator.beta, 0.999),
     )
 
-    num_test_noises = 8
+    num_test_noises = 4
     # Fixed noise, used for visualizing training process
     fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
     # get loader:
