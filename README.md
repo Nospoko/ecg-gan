@@ -1,9 +1,11 @@
 # ecg-gan
 
 ### Suggested reading
+
 - [DCGAN TUTORIAL](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) on PyTorch website.
 - [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434) by Alec Radford, Luke Metz, Soumith Chintala.
--
+- [Tips and tricks to make GANs work](https://github.com/soumith/ganhacks)
+
 ### Code Style
 
 This repository uses pre-commit hooks with forced python formatting ([black](https://github.com/psf/black),

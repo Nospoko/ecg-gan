@@ -7,6 +7,24 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 
 
+def normalize_batch(batch):
+    # Assuming batch is a PyTorch tensor with shape [batch, channels, sequence]
+    min_val = batch.min()
+    max_val = batch.max()
+    # Min-Max normalization to [-1, 1]
+    batch = 2 * ((batch - min_val) / (max_val - min_val)) - 1
+    return batch
+
+
+def collate_fn(batch):
+    # Extract signals
+    signals = [item["signal"] for item in batch]
+    signals = torch.stack(signals, dim=0)
+    # Normalize signals
+    signals = normalize_batch(signals)
+    return {"signal": signals}
+
+
 def set_seed(seed):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
@@ -44,6 +62,7 @@ def create_dataloader(cfg: DictConfig, seed: int = None) -> (DataLoader, DataLoa
         shuffle=True,
         generator=generator,
         worker_init_fn=seed_worker,
+        collate_fn=collate_fn,
     )
     validation_loader = DataLoader(
         validation,
@@ -51,6 +70,7 @@ def create_dataloader(cfg: DictConfig, seed: int = None) -> (DataLoader, DataLoa
         shuffle=False,
         generator=generator,
         worker_init_fn=seed_worker,
+        collate_fn=collate_fn,
     )
     test_loader = DataLoader(
         test,
@@ -58,6 +78,7 @@ def create_dataloader(cfg: DictConfig, seed: int = None) -> (DataLoader, DataLoa
         shuffle=False,
         generator=generator,
         worker_init_fn=seed_worker,
+        collate_fn=collate_fn,
     )
 
     return train_loader, validation_loader, test_loader
