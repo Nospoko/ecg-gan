@@ -78,8 +78,8 @@ def train_step(
     generator.train()
     discriminator.train()
 
-    real_label = 1.0
-    fake_label = 0.0
+    def random_labels(batch_size, start, end, device):
+        return (end - start) * torch.rand(batch_size, device=device) + start
 
     fig_list = []
 
@@ -88,9 +88,12 @@ def train_step(
         real_data = batch["signal"].to(cfg.system.device)
         batch_size = real_data.size(0)
 
+        real_labels = random_labels(batch_size, 0.7, 1.2, cfg.system.device)
+        fake_labels = random_labels(batch_size, 0.0, 0.3, cfg.system.device)
+
         # train discriminator
-        disc_optimizer.zero_grad()
-        label = torch.full((batch_size,), real_label, dtype=torch.float, device=cfg.system.device)
+        discriminator.zero_grad()
+        label = real_labels
         disc_real_output = discriminator(real_data).view(-1)
         discriminator_error_real = criterion(disc_real_output, label)
         discriminator_error_real.backward()
@@ -99,7 +102,7 @@ def train_step(
         # train generator
         noise = torch.randn(batch_size, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
         fake_data = generator(noise)
-        label.fill_(fake_label)
+        label = fake_labels
         disc_fake_output = discriminator(fake_data.detach()).view(-1)
 
         discriminator_error_fake = criterion(disc_fake_output, label)
@@ -109,7 +112,7 @@ def train_step(
         disc_optimizer.step()
         generator.zero_grad()
 
-        label.fill_(real_label)
+        label = real_labels
         disc_output_after_update = discriminator(fake_data).view(-1)
         generator_error = criterion(disc_output_after_update, label)
         generator_error.backward()
