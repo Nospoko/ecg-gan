@@ -3,6 +3,8 @@ train:
   epochs: 5
   log_interval: 1100
   lr: 1e-4
+  load_checkpoint: "checkpoints/GAN_epoch_5.pth"
+  more_epochs: 20
 
 logger:
   checkpoint_path: "checkpoints/"

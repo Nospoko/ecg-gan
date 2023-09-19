@@ -188,16 +188,27 @@ def main(cfg: DictConfig):
         lr=cfg.train.lr,
         betas=(cfg.generator.beta, 0.999),
     )
-
-    num_test_noises = 4
-    # Fixed noise, used for visualizing training process
-    fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
+    if cfg.train.load_checkpoint is not None:
+        checkpoint = torch.load(cfg.train.load_checkpoint)
+        generator_net.load_state_dict(checkpoint["generator_state_dict"])
+        discriminator_net.load_state_dict(checkpoint["discriminator_state_dict"])
+        optimizer_generator.load_state_dict(checkpoint["gen_optimizer_state_dict"])
+        optimizer_discriminator.load_state_dict(checkpoint["disc_optimizer_state_dict"])
+        fixed_noise = checkpoint["fixed_noise"]
+        epoch = checkpoint["epoch"]
+    else:
+        num_test_noises = 4
+        epoch = 0
+        # Fixed noise, used for visualizing training process
+        fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
     # get loader:
     train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
 
     all_figures = []
     # train epochs
-    for epoch in range(1, cfg.train.epochs + 1):
+    epochs = cfg.train.epochs if epoch == 0 else cfg.train.more_epochs
+    start_epoch = epoch + 1
+    for epoch in range(start_epoch, epochs + 1):
         fig_list = train_step(
             generator=generator_net,
             discriminator=discriminator_net,
