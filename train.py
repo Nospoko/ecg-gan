@@ -145,7 +145,7 @@ def train_step(
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
-    name = f"ECG_GAN_{cfg.run_date}"
+    name = f"DeterministicCheck_ECG_GAN_{cfg.run_date}"
     wandb.init(
         project="ECG GAN",
         name=name,

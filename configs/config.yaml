@@ -10,7 +10,7 @@ logger:
 
 system:
   device: "cuda:0"
-  seed: 42
+  seed: 23
 
 discriminator:
   input_channels: 2
