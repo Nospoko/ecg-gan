@@ -33,10 +33,10 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     fake_data = generator(fixed_noise).detach().cpu().numpy()
 
     # Create a figure and a grid of subplots
-    fig, axarr = plt.subplots(8, 2, figsize=(8, 16))
+    fig, axarr = plt.subplots(4, 2, figsize=(4, 16))
 
     # Loop through each subplot to plot the 2-channel data
-    for i in range(8):
+    for i in range(4):
         for j in range(2):
             axarr[i, j].plot(fake_data[i, j, :])
             axarr[i, j].set_title(f"Noise {i+1}, Channel {j+1}")
@@ -145,7 +145,7 @@ def train_step(
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
-    name = f"DeterministicCheck_ECG_GAN_{cfg.run_date}"
+    name = f"ECG_GAN_{cfg.run_date}"
     wandb.init(
         project="ECG GAN",
         name=name,
