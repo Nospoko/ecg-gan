@@ -88,8 +88,8 @@ def train_step(
         real_data = batch["signal"].to(cfg.system.device)
         batch_size = real_data.size(0)
 
-        real_labels = random_labels(batch_size, 0.7, 1.2, cfg.system.device)
-        fake_labels = random_labels(batch_size, 0.0, 0.3, cfg.system.device)
+        real_labels = random_labels(batch_size, 0.8, 1, cfg.system.device)
+        fake_labels = random_labels(batch_size, 0.0, 0.1, cfg.system.device)
 
         # train discriminator
         discriminator.zero_grad()

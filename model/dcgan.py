@@ -47,13 +47,19 @@ class Generator(nn.Module):
         first_kernel_size = output_size // 16
 
         layers.extend(
-            [nn.ConvTranspose1d(nz, neurons[-1], first_kernel_size, 1, 0, bias=False), nn.BatchNorm1d(neurons[-1]), nn.ReLU(True)]
+            [
+                nn.ConvTranspose1d(nz, neurons[-1], first_kernel_size, 1, 0, bias=False),
+                nn.BatchNorm1d(neurons[-1]),
+                nn.LeakyReLU(0.2, inplace=True),
+            ]
         )
 
         prev_channels = neurons[-1]
 
         for n in reversed(neurons[:-1]):
-            layers.extend([nn.ConvTranspose1d(prev_channels, n, 4, 2, 1, bias=False), nn.BatchNorm1d(n), nn.ReLU(True)])
+            layers.extend(
+                [nn.ConvTranspose1d(prev_channels, n, 4, 2, 1, bias=False), nn.BatchNorm1d(n), nn.LeakyReLU(0.2, inplace=True)]
+            )
             prev_channels = n
 
         layers.extend([nn.ConvTranspose1d(prev_channels, output_channels, 4, 2, 1, bias=False), nn.Tanh()])

@@ -3,8 +3,9 @@ train:
   epochs: 5
   log_interval: 1100
   lr: 1e-4
-  load_checkpoint: "checkpoints/GAN_epoch_5.pth"
-  more_epochs: 20
+  # for continuing training
+  load_checkpoint: # change from None to ckeckpoint path
+  more_epochs: 20 # How many more epochs to train
 
 logger:
   checkpoint_path: "checkpoints/"
