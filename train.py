@@ -33,16 +33,11 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     fake_data = generator(fixed_noise).detach().cpu().numpy()
 
     # Create a figure and a grid of subplots
-    fig, axarr = plt.subplots(4, 2, figsize=(4, 16))
+    fig, axarr = plt.subplots(4, 1, figsize=(4, 16))
 
     # Loop through each subplot to plot the 2-channel data
-    for i in range(4):
-        for j in range(2):
-            axarr[i, j].plot(fake_data[i, j, :])
-            axarr[i, j].set_title(f"Noise {i+1}, Channel {j+1}")
-            axarr[i, j].axis("off")
-            axarr[i, j].set_xticks([])
-            axarr[i, j].set_yticks([])
+    for i in range(len(fixed_noise)):
+        axarr[i].plot(fake_data[i, 0, :])
 
     fig.suptitle(f"Epoch {epoch}, Batch {batch_idx}")
     fig.tight_layout()
@@ -85,7 +80,7 @@ def train_step(
 
     progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
     for batch_idx, batch in progress_bar:
-        real_data = batch["signal"].to(cfg.system.device)
+        real_data = batch[0].to(cfg.system.device)
         batch_size = real_data.size(0)
 
         real_labels = random_labels(batch_size, 0.8, 1, cfg.system.device)
@@ -94,6 +89,7 @@ def train_step(
         # train discriminator
         discriminator.zero_grad()
         label = real_labels
+        real_data = real_data.view(real_data.shape[0], 1, real_data.shape[1]).to(cfg.system.device)
         disc_real_output = discriminator(real_data).view(-1)
         discriminator_error_real = criterion(disc_real_output, label)
         discriminator_error_real.backward()
@@ -202,7 +198,8 @@ def main(cfg: DictConfig):
         # Fixed noise, used for visualizing training process
         fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
     # get loader:
-    train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
+    # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
+    train_loader = create_dataloader(cfg, seed=cfg.system.seed)
 
     all_figures = []
     # train epochs

@@ -16,15 +16,15 @@ system:
   seed: 23
 
 discriminator:
-  input_channels: 2
-  input_size: 1000
+  input_channels: 1
+  input_size: 250
   neurons: [64, 128, 256, 512]
   beta: 0.5
 
 generator:
-  nz: 128
-  output_channels: 2
-  output_size: 1000
+  nz: 64
+  output_channels: 1
+  output_size: 250
   neurons: [64, 128, 256, 512]
   beta: 0.5
 
