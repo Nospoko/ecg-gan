@@ -1,7 +1,7 @@
 train:
   batch_size: 64
   epochs: 5
-  log_interval: 1e5
+  log_interval: 1e4
   generator_lr: 1e-4
   discriminator_lr: 1e-5
   # for continuing training
