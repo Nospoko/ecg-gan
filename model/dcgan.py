@@ -35,39 +35,28 @@ class Discriminator(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, nz, output_channels, output_size, neurons):
+    def __init__(self, nz, output_size):
         super(Generator, self).__init__()
-
-        self.output_channels = output_channels
         self.output_size = output_size
-
-        layers = []
-
-        # Using a specific kernel_size for the first ConvTranspose layer
-        first_kernel_size = output_size // 16
-
-        layers.extend(
-            [
-                nn.ConvTranspose1d(nz, neurons[-1], first_kernel_size, 1, 0, bias=False),
-                nn.BatchNorm1d(neurons[-1]),
-                nn.LeakyReLU(0.2, inplace=True),
-            ]
+        self.main = nn.Sequential(
+            nn.ConvTranspose1d(nz, 512, 16, 1, 0, bias=False),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(512, 256, 4, 2, 1, bias=False),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(256, 128, 4, 2, 1, bias=False),
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(128, 64, 4, 2, 1, bias=False),
+            nn.BatchNorm1d(64),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(64, 1, 4, 2, 1, bias=False),
+            nn.Tanh(),
         )
-
-        prev_channels = neurons[-1]
-
-        for n in reversed(neurons[:-1]):
-            layers.extend(
-                [nn.ConvTranspose1d(prev_channels, n, 4, 2, 1, bias=False), nn.BatchNorm1d(n), nn.LeakyReLU(0.2, inplace=True)]
-            )
-            prev_channels = n
-
-        layers.extend([nn.ConvTranspose1d(prev_channels, output_channels, 4, 2, 1, bias=False), nn.Tanh()])
-
-        self.main = nn.Sequential(*layers)
 
     def forward(self, x):
         x = self.main(x)
-        # return only output_size samples
+
         x = x[:, :, : self.output_size]
         return x

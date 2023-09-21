@@ -162,9 +162,7 @@ def main(cfg: DictConfig):
 
     generator_net = Generator(
         nz=cfg.generator.nz,
-        output_channels=cfg.generator.output_channels,
         output_size=cfg.generator.output_size,
-        neurons=cfg.generator.neurons,
     ).to(cfg.system.device)
 
     # Add random weights
@@ -176,12 +174,12 @@ def main(cfg: DictConfig):
     # optimizer
     optimizer_discriminator = optim.Adam(
         discriminator_net.parameters(),
-        lr=cfg.train.lr,
+        lr=cfg.train.discriminator_lr,
         betas=(cfg.discriminator.beta, 0.999),
     )
     optimizer_generator = optim.Adam(
         generator_net.parameters(),
-        lr=cfg.train.lr,
+        lr=cfg.train.generator_lr,
         betas=(cfg.generator.beta, 0.999),
     )
     if cfg.train.load_checkpoint is not None:
