@@ -33,11 +33,16 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     fake_data = generator(fixed_noise).detach().cpu().numpy()
 
     # Create a figure and a grid of subplots
-    fig, axarr = plt.subplots(4, 1, figsize=(4, 16))
+    fig, axes = plt.subplots(
+        nrows=4,
+        ncols=1,
+        figsize=[10, 4],
+        gridspec_kw={"hspace": 0},
+    )
 
     # Loop through each subplot to plot the 2-channel data
     for i in range(len(fixed_noise)):
-        axarr[i].plot(fake_data[i, 0, :])
+        axes[i].plot(fake_data[i, 0, :])
 
     fig.suptitle(f"Epoch {epoch}, Batch {batch_idx}")
     fig.tight_layout()
