@@ -1,7 +1,7 @@
 train:
   batch_size: 64
   epochs: 5
-  log_interval: 500
+  log_interval: 1e5
   generator_lr: 1e-4
   discriminator_lr: 1e-5
   # for continuing training
@@ -23,10 +23,9 @@ discriminator:
   beta: 0.5
 
 generator:
-  nz: 64
+  nz: 50
   output_channels: 1
   output_size: 250
-  neurons: [64, 128, 256, 512]
   beta: 0.5
 
 run_date: ${now:%Y_%m_%d_%H_%M}

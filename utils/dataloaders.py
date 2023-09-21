@@ -28,6 +28,30 @@ class CustomECGDataset(Dataset):
         return channel1, channel2
 
 
+class CombinedECGDataset(Dataset):
+    def __init__(self, *datasets):
+        self.datasets = datasets
+
+        # Calculate the cumulative sizes of datasets for indexing purposes
+        self.cumulative_sizes = np.cumsum([len(ds) for ds in self.datasets])
+
+    def __len__(self):
+        return self.cumulative_sizes[-1]
+
+    def __getitem__(self, idx):
+        # Determine which dataset the idx belongs to
+        dataset_idx = next(i for i, cum_size in enumerate(self.cumulative_sizes) if idx < cum_size)
+
+        if dataset_idx > 0:
+            # Adjust idx to the local index of the dataset it belongs to
+            idx -= self.cumulative_sizes[dataset_idx - 1]
+
+        # Convert the idx to a Python int type
+        idx = int(idx)
+
+        return self.datasets[dataset_idx][idx]
+
+
 def set_seed(seed):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
@@ -45,39 +69,24 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def create_dataloader(cfg: DictConfig, seed: int = None) -> (DataLoader, DataLoader, DataLoader):
+def create_dataloader(
+    cfg: DictConfig, seed: int = None, datasets=["train", "validation", "test"]
+) -> (DataLoader, DataLoader, DataLoader):
     data = load_dataset("roszcz/ecg-segmentation-ltafdb")
-    # train = data["train"]
-    validation = data["validation"]
-    # test = data["test"]
 
-    # train = CustomECGDataset(train)
-    validation = CustomECGDataset(validation)
-    # test = CustomECGDataset(test)
+    # Combine the three datasets
+    datasets_list = [CustomECGDataset(data[dataset_name]) for dataset_name in datasets]
+    combined_dataset = CombinedECGDataset(*datasets_list)
 
     generator = torch.Generator().manual_seed(seed) if seed is not None else None
 
-    # train_loader = DataLoader(
-    #     train,
-    #     batch_size=cfg.train.batch_size,
-    #     shuffle=True,
-    #     generator=generator,
-    #     worker_init_fn=seed_worker,
-    # )
-    validation_loader = DataLoader(
-        validation,
+    # Create a single DataLoader from the combined dataset
+    combined_loader = DataLoader(
+        combined_dataset,
         batch_size=cfg.train.batch_size,
-        shuffle=False,
+        shuffle=True,
         generator=generator,
         worker_init_fn=seed_worker,
     )
-    # test_loader = DataLoader(
-    #     test,
-    #     batch_size=cfg.train.batch_size,
-    #     shuffle=False,
-    #     generator=generator,
-    #     worker_init_fn=seed_worker,
-    # )
 
-    # return train_loader, validation_loader, test_loader
-    return validation_loader
+    return combined_loader
