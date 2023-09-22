@@ -8,19 +8,24 @@ from datasets import load_dataset, concatenate_datasets
 
 
 class CustomECGDataset(Dataset):
-    def __init__(self, hf_dataset):
+    def __init__(self, hf_dataset, data_size):
         self.hf_dataset = hf_dataset
+        self.data_multiplier = 1000 // data_size
+
+        # check if it's a power of 2
+        assert (self.data_multiplier & (self.data_multiplier - 1) == 0) and self.data_multiplier != 0
 
     def __len__(self):
-        return len(self.hf_dataset) * 4  # Each original sample will produce 4 new samples
+        return len(self.hf_dataset) * self.data_multiplier  # Each original sample will produce data_multiplier samples
 
     def __getitem__(self, index):
-        original_index = index // 4  # Determine the index in the original dataset
-        slice_index = index % 4  # Determine which slice (0, 1, 2, or 3)
+        original_index = index // self.data_multiplier  # Determine the index in the original dataset
+        slice_index = index % self.data_multiplier  # Determine which slice (0, 1, 2, or 3)
 
+        new_size = 1000 // self.data_multiplier
         sample = self.hf_dataset[original_index]
-        start = slice_index * 250
-        end = start + 250
+        start = slice_index * new_size
+        end = start + new_size
 
         channel1 = torch.tensor(sample["signal"][0][start:end])
         channel2 = torch.tensor(sample["signal"][1][start:end])
@@ -52,7 +57,7 @@ def create_dataloader(
     datasets = [load_dataset("roszcz/ecg-segmentation-ltafdb", split=split) for split in splits]
     dataset = concatenate_datasets(datasets)
 
-    combined_dataset = CustomECGDataset(dataset)
+    combined_dataset = CustomECGDataset(dataset, cfg.data.size)
 
     generator = torch.Generator().manual_seed(seed) if seed is not None else None
 
