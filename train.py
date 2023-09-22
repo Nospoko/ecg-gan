@@ -145,9 +145,10 @@ def train_step(
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
-    wandb.init(
+    run = wandb.init(
         project=cfg.project,
         name=cfg.run_name,
+        job_type="train",
         config=OmegaConf.to_container(cfg, resolve=True),
     )
     set_seed(cfg.system.seed)
@@ -215,6 +216,7 @@ def main(cfg: DictConfig):
             fixed_noise=fixed_noise,
             epoch=epoch,
         )
+    run.finish()
 
 
 if __name__ == "__main__":

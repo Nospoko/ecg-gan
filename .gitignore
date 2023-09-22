@@ -7,3 +7,4 @@ wandb/
 tests/
 ecgdata/
 tmp/
+multirun/

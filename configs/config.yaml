@@ -19,14 +19,14 @@ system:
 
 data:
   channels: 1
-  size: 125
+  size: 250
 
 discriminator:
   neurons: [64, 128, 256, 512]
   beta: 0.5
 
 generator:
-  noise_size: 50
+  noise_size: 100
   beta: 0.5
 
 project: "ECG GAN"
