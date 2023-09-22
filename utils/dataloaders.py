@@ -63,7 +63,7 @@ def create_dataloader(
         shuffle=True,
         generator=generator,
         worker_init_fn=seed_worker,
-        num_workers=8,
+        num_workers=cfg.train.num_workers,
     )
 
     return combined_loader

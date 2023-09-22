@@ -1,10 +1,8 @@
-import io
 import os
 
 import hydra
 import torch
 import torch.nn as nn
-from PIL import Image
 from tqdm import tqdm
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -51,19 +49,6 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     return fig
 
 
-def save_progress_gif(fig_list, chart_path: str = "tmp/"):
-    imgs = []
-    for fig in fig_list:
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png")
-        buf.seek(0)
-        img = Image.open(buf)
-        imgs.append(img)
-
-    # Save as an animated GIF
-    imgs[0].save(f"{chart_path}progress.gif", save_all=True, append_images=imgs[1:], loop=0, duration=500)
-
-
 def train_step(
     generator: Generator,
     discriminator: Discriminator,
@@ -80,8 +65,6 @@ def train_step(
 
     def random_labels(batch_size, start, end, device):
         return (end - start) * torch.rand(batch_size, device=device) + start
-
-    fig_list = []
 
     progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
     for batch_idx, batch in progress_bar:
@@ -121,18 +104,21 @@ def train_step(
         gen_optimizer.step()
 
         # log to wandb
-        wandb.log(
-            {
-                "generator_error": generator_error.item(),
-                "discriminator_error": discriminator_error.item(),
-                "D_x": D_x,
-                "D_G_z1": D_G_z1,
-                "D_G_z2": D_G_z2,
-            }
-        )
         if batch_idx % cfg.train.log_interval == 0:
+            wandb.log(
+                {
+                    "generator_error": generator_error.item(),
+                    "discriminator_error": discriminator_error.item(),
+                    "D_x": D_x,
+                    "D_G_z1": D_G_z1,
+                    "D_G_z2": D_G_z2,
+                },
+                commit=False,
+            )
             fig = visualize_training(generator, fixed_noise, epoch, batch_idx, cfg.logger.chart_path)
-            fig_list.append(fig)
+            wandb.log({"fixed noise": wandb.Image(fig)}, commit=True)
+            # TODO: Might add local saving here as well
+            plt.close(fig)
 
     checkpoint = {
         "epoch": epoch,
@@ -143,16 +129,14 @@ def train_step(
         "config": cfg,
         "fixed_noise": fixed_noise,
     }
-    torch.save(checkpoint, f"{cfg.logger.checkpoint_path}GAN_epoch_{epoch}.pth")
-    return fig_list
+    torch.save(checkpoint, f"{cfg.logger.checkpoint_path}{cfg.run_name}_{epoch}.pt")
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig):
-    name = f"ECG_GAN_{cfg.run_date}"
     wandb.init(
-        project="ECG GAN",
-        name=name,
+        project=cfg.project,
+        name=cfg.run_name,
         config=OmegaConf.to_container(cfg, resolve=True),
     )
     set_seed(cfg.system.seed)
@@ -205,12 +189,11 @@ def main(cfg: DictConfig):
     train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["validation", "test", "train"])
     print(len(train_loader))
 
-    all_figures = []
     # train epochs
     epochs = cfg.train.epochs if epoch == 0 else cfg.train.more_epochs
     start_epoch = epoch + 1
     for epoch in range(start_epoch, epochs + 1):
-        fig_list = train_step(
+        train_step(
             generator=generator_net,
             discriminator=discriminator_net,
             train_loader=train_loader,
@@ -221,9 +204,6 @@ def main(cfg: DictConfig):
             fixed_noise=fixed_noise,
             epoch=epoch,
         )
-        all_figures.extend(fig_list)
-    # create gif from figures
-    save_progress_gif(all_figures, cfg.logger.chart_path)
 
 
 if __name__ == "__main__":
