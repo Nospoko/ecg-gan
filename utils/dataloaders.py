@@ -3,8 +3,8 @@ import random
 import torch
 import numpy as np
 from omegaconf import DictConfig
-from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
+from datasets import load_dataset, concatenate_datasets
 
 
 class CustomECGDataset(Dataset):
@@ -28,30 +28,6 @@ class CustomECGDataset(Dataset):
         return channel1, channel2
 
 
-class CombinedECGDataset(Dataset):
-    def __init__(self, *datasets):
-        self.datasets = datasets
-
-        # Calculate the cumulative sizes of datasets for indexing purposes
-        self.cumulative_sizes = np.cumsum([len(ds) for ds in self.datasets])
-
-    def __len__(self):
-        return self.cumulative_sizes[-1]
-
-    def __getitem__(self, idx):
-        # Determine which dataset the idx belongs to
-        dataset_idx = next(i for i, cum_size in enumerate(self.cumulative_sizes) if idx < cum_size)
-
-        if dataset_idx > 0:
-            # Adjust idx to the local index of the dataset it belongs to
-            idx -= self.cumulative_sizes[dataset_idx - 1]
-
-        # Convert the idx to a Python int type
-        idx = int(idx)
-
-        return self.datasets[dataset_idx][idx]
-
-
 def set_seed(seed):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
@@ -70,13 +46,13 @@ def seed_worker(worker_id):
 
 
 def create_dataloader(
-    cfg: DictConfig, seed: int = None, datasets=["train", "validation", "test"]
+    cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]
 ) -> (DataLoader, DataLoader, DataLoader):
-    data = load_dataset("roszcz/ecg-segmentation-ltafdb")
-
     # Combine the three datasets
-    datasets_list = [CustomECGDataset(data[dataset_name]) for dataset_name in datasets]
-    combined_dataset = CombinedECGDataset(*datasets_list)
+    datasets = [load_dataset("roszcz/ecg-segmentation-ltafdb", split=split) for split in splits]
+    dataset = concatenate_datasets(datasets)
+
+    combined_dataset = CustomECGDataset(dataset)
 
     generator = torch.Generator().manual_seed(seed) if seed is not None else None
 
@@ -87,6 +63,7 @@ def create_dataloader(
         shuffle=True,
         generator=generator,
         worker_init_fn=seed_worker,
+        num_workers=8,
     )
 
     return combined_loader
