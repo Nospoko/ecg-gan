@@ -71,6 +71,7 @@ def train_step(
         real_data = batch[0].to(cfg.system.device)
         batch_size = real_data.size(0)
 
+        # trick 6 from: https://github.com/soumith/ganhacks
         real_labels = random_labels(batch_size, 0.8, 1, cfg.system.device)
         fake_labels = random_labels(batch_size, 0.0, 0.1, cfg.system.device)
 
@@ -186,7 +187,7 @@ def main(cfg: DictConfig):
         fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
-    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["validation", "test", "train"])
+    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train"])
     print(len(train_loader))
 
     # train epochs
