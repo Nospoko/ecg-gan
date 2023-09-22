@@ -35,11 +35,11 @@ class Discriminator(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, nz, output_size):
+    def __init__(self, noise_size, output_size):
         super(Generator, self).__init__()
         self.output_size = output_size
         self.main = nn.Sequential(
-            nn.ConvTranspose1d(nz, 512, 16, 1, 0, bias=False),
+            nn.ConvTranspose1d(noise_size, 512, 16, 1, 0, bias=False),
             nn.BatchNorm1d(512),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(512, 256, 4, 2, 1, bias=False),

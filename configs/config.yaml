@@ -6,7 +6,7 @@ train:
   discriminator_lr: 1e-5
   num_workers: 4
   # for continuing training
-  load_checkpoint: # change from None to ckeckpoint path
+  load_checkpoint: # change from None to checkpoint path to continue training
   more_epochs: 20 # How many more epochs to train
 
 logger:
@@ -24,7 +24,7 @@ discriminator:
   beta: 0.5
 
 generator:
-  nz: 50
+  noise_size: 50
   output_channels: 1
   output_size: 250
   beta: 0.5

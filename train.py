@@ -85,7 +85,7 @@ def train_step(
         D_x = disc_real_output.mean().item()  # Mean discriminator output for real data
 
         # train generator
-        noise = torch.randn(batch_size, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
+        noise = torch.randn(batch_size, cfg.generator.noise_size, cfg.generator.output_channels, device=cfg.system.device)
         fake_data = generator(noise)
         label = fake_labels
         disc_fake_output = discriminator(fake_data.detach()).view(-1)
@@ -151,7 +151,7 @@ def main(cfg: DictConfig):
     ).to(cfg.system.device)
 
     generator_net = Generator(
-        nz=cfg.generator.nz,
+        noise_size=cfg.generator.noise_size,
         output_size=cfg.generator.output_size,
     ).to(cfg.system.device)
 
@@ -184,10 +184,12 @@ def main(cfg: DictConfig):
         num_test_noises = 4
         epoch = 0
         # Fixed noise, used for visualizing training process
-        fixed_noise = torch.randn(num_test_noises, cfg.generator.nz, cfg.generator.output_channels, device=cfg.system.device)
+        fixed_noise = torch.randn(
+            num_test_noises, cfg.generator.noise_size, cfg.generator.output_channels, device=cfg.system.device
+        )
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
-    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train"])
+    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["validation"])
     print(len(train_loader))
 
     # train epochs
