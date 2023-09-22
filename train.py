@@ -49,6 +49,14 @@ def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: i
     return fig
 
 
+def average_gradient(model: nn.Module) -> dict:
+    avg_gradients = {}
+    for name, param in model.named_parameters():
+        if param.grad is not None:
+            avg_gradients[name] = torch.mean(torch.abs(param.grad)).item()
+    return avg_gradients
+
+
 def train_step(
     generator: Generator,
     discriminator: Discriminator,
@@ -85,7 +93,7 @@ def train_step(
         D_x = disc_real_output.mean().item()  # Mean discriminator output for real data
 
         # train generator
-        noise = torch.randn(batch_size, cfg.generator.noise_size, cfg.generator.output_channels, device=cfg.system.device)
+        noise = torch.randn(batch_size, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
         fake_data = generator(noise)
         label = fake_labels
         disc_fake_output = discriminator(fake_data.detach()).view(-1)
@@ -106,6 +114,7 @@ def train_step(
 
         # log to wandb
         if batch_idx % cfg.train.log_interval == 0:
+            generator_gradients = average_gradient(generator)
             wandb.log(
                 {
                     "generator_error": generator_error.item(),
@@ -113,6 +122,7 @@ def train_step(
                     "D_x": D_x,
                     "D_G_z1": D_G_z1,
                     "D_G_z2": D_G_z2,
+                    "generator/generator_gradients": generator_gradients,
                 },
                 commit=False,
             )
@@ -145,14 +155,14 @@ def main(cfg: DictConfig):
 
     # Initialize models
     discriminator_net = Discriminator(
-        input_channels=cfg.discriminator.input_channels,
-        input_size=cfg.discriminator.input_size,
+        input_channels=cfg.data.channels,
+        input_size=cfg.data.size,
         neurons=cfg.discriminator.neurons,
     ).to(cfg.system.device)
 
     generator_net = Generator(
         noise_size=cfg.generator.noise_size,
-        output_size=cfg.generator.output_size,
+        output_size=cfg.data.size,
     ).to(cfg.system.device)
 
     # Add random weights
@@ -184,9 +194,7 @@ def main(cfg: DictConfig):
         num_test_noises = 4
         epoch = 0
         # Fixed noise, used for visualizing training process
-        fixed_noise = torch.randn(
-            num_test_noises, cfg.generator.noise_size, cfg.generator.output_channels, device=cfg.system.device
-        )
+        fixed_noise = torch.randn(num_test_noises, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
     train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["validation"])
