@@ -24,7 +24,13 @@ def create_folders(cfg: DictConfig):
 
 
 @torch.no_grad()
-def visualize_training(generator: Generator, fixed_noise: torch.Tensor, epoch: int, batch_idx: int, chart_path: str = "tmp/"):
+def visualize_training(
+    generator: Generator,
+    fixed_noise: torch.Tensor,
+    epoch: int,
+    batch_idx: int,
+    chart_path: str = "tmp/",
+):
     generator.eval()
 
     # Generate fake data using the generator and fixed noise
@@ -137,7 +143,7 @@ def train_step(
         "discriminator_state_dict": discriminator.state_dict(),
         "gen_optimizer_state_dict": gen_optimizer.state_dict(),
         "disc_optimizer_state_dict": disc_optimizer.state_dict(),
-        "config": cfg,
+        "config": OmegaConf.to_object(cfg),
         "fixed_noise": fixed_noise,
     }
     torch.save(checkpoint, f"{cfg.logger.checkpoint_path}{cfg.run_name}_{epoch}.pt")
@@ -155,38 +161,38 @@ def main(cfg: DictConfig):
     create_folders(cfg)
 
     # Initialize models
-    discriminator_net = Discriminator(
+    discriminator = Discriminator(
         input_channels=cfg.data.channels,
         input_size=cfg.data.size,
         neurons=cfg.discriminator.neurons,
     ).to(cfg.system.device)
 
-    generator_net = Generator(
+    generator = Generator(
         noise_size=cfg.generator.noise_size,
         output_size=cfg.data.size,
     ).to(cfg.system.device)
 
     # Add random weights
-    discriminator_net.apply(weights_init)
-    generator_net.apply(weights_init)
+    discriminator.apply(weights_init)
+    generator.apply(weights_init)
 
     # criterion
     criterion = nn.BCELoss()
     # optimizer
     optimizer_discriminator = optim.Adam(
-        discriminator_net.parameters(),
+        discriminator.parameters(),
         lr=cfg.train.discriminator_lr,
         betas=(cfg.discriminator.beta, 0.999),
     )
     optimizer_generator = optim.Adam(
-        generator_net.parameters(),
+        generator.parameters(),
         lr=cfg.train.generator_lr,
         betas=(cfg.generator.beta, 0.999),
     )
     if cfg.train.load_checkpoint is not None:
         checkpoint = torch.load(cfg.train.load_checkpoint)
-        generator_net.load_state_dict(checkpoint["generator_state_dict"])
-        discriminator_net.load_state_dict(checkpoint["discriminator_state_dict"])
+        generator.load_state_dict(checkpoint["generator_state_dict"])
+        discriminator.load_state_dict(checkpoint["discriminator_state_dict"])
         optimizer_generator.load_state_dict(checkpoint["gen_optimizer_state_dict"])
         optimizer_discriminator.load_state_dict(checkpoint["disc_optimizer_state_dict"])
         fixed_noise = checkpoint["fixed_noise"]
@@ -206,8 +212,8 @@ def main(cfg: DictConfig):
     start_epoch = epoch + 1
     for epoch in range(start_epoch, epochs + 1):
         train_step(
-            generator=generator_net,
-            discriminator=discriminator_net,
+            generator=generator,
+            discriminator=discriminator,
             train_loader=train_loader,
             gen_optimizer=optimizer_generator,
             disc_optimizer=optimizer_discriminator,
