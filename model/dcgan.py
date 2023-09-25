@@ -39,17 +39,32 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.output_size = output_size
         size_multiplier = 1000 // output_size
+
         self.main = nn.Sequential(
-            nn.ConvTranspose1d(noise_size, 512, 64 // size_multiplier, 1, 0, bias=False),
+            # Initial block
+            nn.ConvTranspose1d(noise_size, 1024, 64 // size_multiplier, 1, 0, bias=False),
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU(0.2, inplace=True),
+            # Block 1
+            nn.ConvTranspose1d(1024, 512, 4, 2, 1, bias=False),
             nn.BatchNorm1d(512),
             nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(512, 512, 4, 1, 1, bias=False),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            # Block 2
             nn.ConvTranspose1d(512, 256, 4, 2, 1, bias=False),
             nn.BatchNorm1d(256),
             nn.LeakyReLU(0.2, inplace=True),
+            nn.ConvTranspose1d(256, 256, 4, 1, 1, bias=False),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+            # Block 3
             nn.ConvTranspose1d(256, 128, 4, 2, 1, bias=False),
             nn.BatchNorm1d(128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.ConvTranspose1d(128, 64, 4, 2, 1, bias=False),
+            # Final block
+            nn.ConvTranspose1d(128, 64, 4, 1, 1, bias=False),
             nn.BatchNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(64, 1, 4, 2, 1, bias=False),

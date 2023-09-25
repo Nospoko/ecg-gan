@@ -50,8 +50,8 @@ def visualize_training(
 
     fig.suptitle(f"Epoch {epoch}, Batch {batch_idx}")
     fig.tight_layout()
-    # save the figure to img/ folder
-    fig.savefig(f"{chart_path}epoch_{epoch}_batch_{batch_idx}.png")
+    # save the figure to chart_path/ folder
+    # fig.savefig(f"{chart_path}epoch_{epoch}_batch_{batch_idx}.png")
     return fig
 
 
