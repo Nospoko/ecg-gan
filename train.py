@@ -179,11 +179,18 @@ def main(cfg: DictConfig):
     # criterion
     criterion = nn.BCELoss()
     # optimizer
-    optimizer_discriminator = optim.Adam(
-        discriminator.parameters(),
-        lr=cfg.train.discriminator_lr,
-        betas=(cfg.discriminator.beta, 0.999),
-    )
+    if cfg.train.use_sgd:
+        optimizer_discriminator = optim.SGD(
+            discriminator.parameters(),
+            lr=cfg.train.discriminator_sgd_lr,
+        )
+    else:
+        optimizer_discriminator = optim.Adam(
+            discriminator.parameters(),
+            lr=cfg.train.discriminator_adam_lr,
+            betas=(cfg.discriminator.beta, 0.999),
+        )
+
     optimizer_generator = optim.Adam(
         generator.parameters(),
         lr=cfg.train.generator_lr,
@@ -204,7 +211,7 @@ def main(cfg: DictConfig):
         fixed_noise = torch.randn(num_test_noises, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
-    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["validation"])
+    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train"])
     print(len(train_loader))
 
     # train epochs
