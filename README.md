@@ -1,6 +1,5 @@
 # ecg-gan
-
-Take a look at this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/ljdkb8p4?workspace=user-sneakyinsect) for some baseline results.
+Check out this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/bpr8skng) to get a feel for the baseline model.
 
 ### Suggested reading
 

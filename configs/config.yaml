@@ -7,7 +7,7 @@ train:
   num_workers: 4
   # For SGD optimizer
   use_sgd: true
-  discriminator_sgd_lr: 1e-4 # It's slightly slower and needs higher learning rate
+  discriminator_sgd_lr: 2e-4 # It's slightly slower and needs higher learning rate
   # for continuing training
   load_checkpoint: # change from None to checkpoint path to continue training
   more_epochs: 20 # How many more epochs to train
@@ -22,14 +22,14 @@ system:
 
 data:
   channels: 1
-  size: 1000
+  size: 250
 
 discriminator:
   neurons: [64, 128, 256, 512]
   beta: 0.5
 
 generator:
-  noise_size: 200
+  noise_size: 100
   beta: 0.5
 
 project: "ECG GAN"
