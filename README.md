@@ -1,5 +1,7 @@
 # ecg-gan
 
+Take a look at this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/ljdkb8p4?workspace=user-sneakyinsect) for some baseline results.
+
 ### Suggested reading
 
 - [DCGAN TUTORIAL](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) on PyTorch website.
