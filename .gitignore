@@ -6,3 +6,5 @@ checkpoints/
 wandb/
 tests/
 ecgdata/
+tmp/
+multirun/

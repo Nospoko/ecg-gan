@@ -1,5 +1,14 @@
 # ecg-gan
 
+Check out this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/bpr8skng) to get a feel for the baseline model or run `python train.py` to reproduce the results
+
+### Suggested reading
+
+- [DCGAN TUTORIAL](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) on PyTorch website.
+- [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434) by Alec Radford, Luke Metz, Soumith Chintala.
+- [Tips and tricks to make GANs work](https://github.com/soumith/ganhacks)
+  - Focused on points: 6, 7. Applied most of them.
+
 ### Code Style
 
 This repository uses pre-commit hooks with forced python formatting ([black](https://github.com/psf/black),
