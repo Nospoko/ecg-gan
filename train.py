@@ -211,7 +211,7 @@ def main(cfg: DictConfig):
         fixed_noise = torch.randn(num_test_noises, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
-    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train"])
+    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train", "test", "validation"])
     print(len(train_loader))
 
     # train epochs

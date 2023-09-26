@@ -29,7 +29,7 @@ discriminator:
   beta: 0.5
 
 generator:
-  noise_size: 1000
+  noise_size: 200
   beta: 0.5
 
 project: "ECG GAN"
