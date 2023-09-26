@@ -63,7 +63,7 @@ def average_gradient(model: nn.Module) -> dict:
     return avg_gradients
 
 
-def train_step(
+def train_epoch(
     generator: Generator,
     discriminator: Discriminator,
     train_loader: DataLoader,
@@ -218,7 +218,7 @@ def main(cfg: DictConfig):
     epochs = cfg.train.epochs if epoch == 0 else cfg.train.more_epochs
     start_epoch = epoch + 1
     for epoch in range(start_epoch, epochs + 1):
-        train_step(
+        train_epoch(
             generator=generator,
             discriminator=discriminator,
             train_loader=train_loader,
