@@ -5,9 +5,9 @@ from vqgan.encoder import ConvolutionalEncoder
 from vqgan.decoder import DeconvolutionalDecoder
 
 
-class VQGAN(nn.Module):
+class VQVAE(nn.Module):
     def __init__(self, cfg, device):
-        super(VQGAN, self).__init__()
+        super(VQVAE, self).__init__()
 
         self._output_features_filters = (
             cfg.output_features_filters * 3 if cfg.augment_output_features else cfg.output_features_filters

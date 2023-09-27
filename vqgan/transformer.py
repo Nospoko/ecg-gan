@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
 from mingpt import GPT
+from vqvae import VQVAE
 import torch.nn.functional as F
-
-from vqgan import VQGAN
 
 
 class VQGANTransformer(nn.Module):
@@ -27,7 +26,7 @@ class VQGANTransformer(nn.Module):
 
     @staticmethod
     def load_vqgan(args):
-        model = VQGAN(args)
+        model = VQVAE(args)
         model.load_checkpoint(args.checkpoint_path)
         model = model.eval()
         return model
