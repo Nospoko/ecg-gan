@@ -33,7 +33,7 @@ class CustomECGDataset(Dataset):
         return channel1, channel2
 
 
-def set_seed(seed):
+def set_seed(seed, deterministic=True):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -41,7 +41,7 @@ def set_seed(seed):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    torch.use_deterministic_algorithms(True)
+    torch.use_deterministic_algorithms(deterministic)
 
 
 def seed_worker(worker_id):
