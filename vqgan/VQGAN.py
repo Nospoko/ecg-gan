@@ -91,3 +91,13 @@ class VQGAN(nn.Module):
             vq_dict["encoding_indices"],
             vq_dict["concatenated_quantized"],
         )
+
+    def encode(self, x):
+        z = self._encoder(x)
+        z = self._pre_vq_conv(z)
+        vq_dict = self._vq(z, record_codebook_stats=self._record_codebook_stats)
+        return vq_dict["quantized"], vq_dict["encoding_indices"], vq_dict["vq_loss"]
+
+    def decode(self, z):
+        decoded = self._decoder(z)
+        return decoded
