@@ -43,8 +43,6 @@ class VQVAE(nn.Module):
             num_residual_layers=cfg.num_residual_layers,
             num_residual_hiddens=cfg.num_residual_hiddens,
             use_kaiming_normal=cfg.use_kaiming_normal,
-            use_jitter=cfg.use_jitter,
-            jitter_probability=cfg.jitter_probability,
             device=device,
             verbose=self._verbose,
         )
@@ -70,7 +68,6 @@ class VQVAE(nn.Module):
 
     def forward(self, x):
         z = self._encoder(x)
-
         z = self._pre_vq_conv(z)
 
         vq_dict = self._vq(z, record_codebook_stats=self._record_codebook_stats)
