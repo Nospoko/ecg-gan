@@ -53,8 +53,8 @@ def seed_worker(worker_id):
 def create_dataloader(
     cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]
 ) -> (DataLoader, DataLoader, DataLoader):
-    # Combine the three datasets
-    datasets = [load_dataset("roszcz/ecg-segmentation-ltafdb", split=split) for split in splits]
+    # Use cleaned up dataset ~3% less samples, but less noise
+    datasets = [load_dataset("SneakyInsect/ltafdb_preprocessed", split=split) for split in splits]
     dataset = concatenate_datasets(datasets)
 
     combined_dataset = CustomECGDataset(dataset, cfg.data.size)
