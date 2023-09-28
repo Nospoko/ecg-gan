@@ -1,0 +1,24 @@
+latent_dim: 256
+image_size: 256
+num_codebook_vectors: 1024
+beta: 0.25
+image_channels: 1  # Since 1D data?
+dataset_path: "./data"
+checkpoint_path: "./checkpoints/last_ckpt.pt"
+batch_size: 20
+epochs: 100
+learning_rate: 2.25e-05
+beta1: 0.5
+beta2: 0.9
+disc_start: 10000
+disc_factor: 1.0
+l2_loss_factor: 1.0
+perceptual_loss_factor: 1.0
+pkeep: 0.5
+sos_token: 0
+
+system:
+  device: 'cuda:0'
+
+# Parameters specific to our data shape
+seq_len: 1000

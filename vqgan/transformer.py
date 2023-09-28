@@ -34,11 +34,11 @@ class VQGANTransformer(nn.Module):
     @torch.no_grad()
     def encode_to_z(self, x):
         quant_z, indices, _ = self.vqgan.encode(x)
-        indices = indices.view(quant_z.shape[0], -1)
         return quant_z, indices
 
     @torch.no_grad()
     def z_to_image(self, indices, p1=16, p2=16):
+        # TODO: change to ECG data
         ix_to_vectors = self.vqgan.codebook.embedding(indices).reshape(indices.shape[0], p1, p2, 256)
         ix_to_vectors = ix_to_vectors.permute(0, 3, 1, 2)
         image = self.vqgan.decode(ix_to_vectors)
@@ -92,6 +92,7 @@ class VQGANTransformer(nn.Module):
 
     @torch.no_grad()
     def log_images(self, x):
+        # TODO: delete this after refactoring
         log = dict()
 
         _, indices = self.encode_to_z(x)
