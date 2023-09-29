@@ -27,6 +27,11 @@ def save_interpolations(generator, noise1: torch.Tensor, noise2: torch.Tensor, n
     # generate fake data using the generator and noises
     fake_data = generator(noises).detach().cpu().numpy()
 
+    # denormalize data from [-1, 1]
+    global_max = [9.494109153747559, 7.599456787109375]
+    global_min = [-10.515237808227539, -7.820725917816162]
+    fake_data = (fake_data + 1) * (global_max[0] - global_min[0]) / 2 + global_min[0]
+
     # Visualize and save as gif
     images = []
     for i in range(len(fake_data)):
@@ -47,7 +52,9 @@ def save_interpolations(generator, noise1: torch.Tensor, noise2: torch.Tensor, n
 
 
 if __name__ == "__main__":
-    checkpoint_path = None  # change this to string path of checkpoint if you want to load from local
+    checkpoint_path = (
+        "checkpoints/ECG_GAN_2023_09_29_10_00_1.pt"  # change this to string path of checkpoint if you want to load from local
+    )
     number_of_interpolations = 20
     save_path = "tmp/interpolation.gif"
 
