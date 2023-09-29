@@ -4,7 +4,7 @@ train:
   log_interval: 100
   generator_lr: 2e-4
   discriminator_adam_lr: 1e-5
-  num_workers: 4
+  num_workers: 6
   # For SGD optimizer
   use_sgd: true
   discriminator_sgd_lr: 2e-4 # It's slightly slower and needs higher learning rate

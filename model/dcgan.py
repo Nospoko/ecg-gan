@@ -53,7 +53,7 @@ class Generator(nn.Module):
             nn.BatchNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(64, 1, 4, 2, 1, bias=False),
-            # nn.Tanh(),
+            nn.Tanh(),
         )
 
     def forward(self, x):

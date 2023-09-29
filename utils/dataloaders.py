@@ -12,6 +12,11 @@ class CustomECGDataset(Dataset):
         self.hf_dataset = hf_dataset
         self.data_multiplier = 1000 // data_size
 
+        # It's computationally expensive to calculate the global min and max
+        # The values are taken from data_showcase.ipynb
+        self.global_max = [9.494109153747559, 7.599456787109375]
+        self.global_min = [-10.515237808227539, -7.820725917816162]
+
         # check if it's a power of 2
         assert (self.data_multiplier & (self.data_multiplier - 1) == 0) and self.data_multiplier != 0
 
@@ -20,15 +25,24 @@ class CustomECGDataset(Dataset):
 
     def __getitem__(self, index):
         original_index = index // self.data_multiplier  # Determine the index in the original dataset
-        slice_index = index % self.data_multiplier  # Determine which slice (0, 1, 2, or 3)
+        slice_index = index % self.data_multiplier  # Determine which slice (depending on data_multiplier)
 
         new_size = 1000 // self.data_multiplier
         sample = self.hf_dataset[original_index]
         start = slice_index * new_size
         end = start + new_size
 
-        channel1 = torch.tensor(sample["signal"][0][start:end])
-        channel2 = torch.tensor(sample["signal"][1][start:end])
+        # Extract channels
+        channel1 = np.array(sample["signal"][0][start:end])
+        channel2 = np.array(sample["signal"][1][start:end])
+
+        # Normalize each channel in the range [-1, 1]
+        channel1 = 2 * ((channel1 - self.global_min[0]) / (self.global_max[0] - self.global_min[0])) - 1
+        channel2 = 2 * ((channel2 - self.global_min[1]) / (self.global_max[1] - self.global_min[1])) - 1
+
+        # Convert to tensor
+        channel1 = torch.tensor(channel1, dtype=torch.float32)
+        channel2 = torch.tensor(channel2, dtype=torch.float32)
 
         return channel1, channel2
 
