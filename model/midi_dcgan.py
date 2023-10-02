@@ -79,6 +79,5 @@ class Generator(nn.Module):
         x[:, 2, :] = torch.round(x[:, 2, :])
         x[:, 3, :] = torch.round(x[:, 3, :])
 
-        #
         x = x[:, :, : self.output_size]
         return x

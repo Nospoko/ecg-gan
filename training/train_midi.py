@@ -5,11 +5,13 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import torch.optim as optim
+from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import OmegaConf, DictConfig
 
 import wandb
 from utils.dataloaders import set_seed, create_midi_dataloader
+from evals.midi_tools import plot_piano_roll, to_fortepyan_midi
 from model.midi_dcgan import Generator, Discriminator, weights_init
 
 
@@ -28,6 +30,23 @@ def average_gradient(model: nn.Module) -> dict:
         if param.grad is not None:
             avg_gradients[name] = torch.mean(torch.abs(param.grad)).item()
     return avg_gradients
+
+
+@torch.no_grad()
+def visualize_progress(generator: nn.Module, noise: torch.Tensor, epoch: int, batch_idx: int) -> plt.Figure:
+    generator.eval()
+    fake_data = generator(noise).detach().cpu().numpy()
+    # pick noise nr 0 for now
+    # TODO: change to plot all noises
+    dstart = fake_data[0, 0, :]
+    duration = fake_data[0, 1, :]
+    velocity = fake_data[0, 2, :]
+    pitch = fake_data[0, 3, :]
+
+    fortepyan_midi = to_fortepyan_midi(pitch, dstart, duration, velocity)
+    fig = plot_piano_roll(fortepyan_midi, title=f"Epoch {epoch}")
+
+    return fig
 
 
 def train_epoch(
@@ -97,8 +116,11 @@ def train_epoch(
                     "D_G_z2": D_G_z2,
                     "generator/generator_gradients": generator_gradients,
                 },
-                commit=True,
+                commit=False,
             )
+            fig = visualize_progress(generator, fixed_noise, epoch, batch_idx)
+            wandb.log({"fixed noise": wandb.Image(fig)}, commit=True)
+            plt.close(fig)
 
     checkpoint = {
         "epoch": epoch,
