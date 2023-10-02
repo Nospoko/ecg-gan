@@ -47,6 +47,26 @@ class CustomECGDataset(Dataset):
         return channel1, channel2
 
 
+class CustomMidiDataset(Dataset):
+    def __init__(self, hf_dataset):
+        self.hf_dataset = hf_dataset
+
+    def __len__(self):
+        return len(self.hf_dataset)
+
+    def __getitem__(self, index):
+        sample = self.hf_dataset[index]
+
+        # Extract and preprocess MIDI data.
+        name = sample["name"]
+        start = torch.tensor(sample["start"], dtype=torch.float32)
+        end = torch.tensor(sample["duration"], dtype=torch.float32)
+        pitch = torch.tensor(sample["pitch"], dtype=torch.float32)  # to avoid casting to float when training
+        velocity = torch.tensor(sample["velocity"], dtype=torch.float32)
+
+        return {"name": name, "start": start, "duration": end, "pitch": pitch, "velocity": velocity}
+
+
 def set_seed(seed, deterministic=True):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
@@ -90,10 +110,12 @@ def create_midi_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "
     datasets = [load_dataset("SneakyInsect/maestro-rollingsplit", split=split) for split in splits]
     dataset = concatenate_datasets(datasets)
 
+    midi_dataset = CustomMidiDataset(dataset)
+
     generator = torch.Generator().manual_seed(seed) if seed is not None else None
 
     dataloader = DataLoader(
-        dataset,
+        midi_dataset,
         batch_size=cfg.train.batch_size,
         shuffle=True,
         generator=generator,

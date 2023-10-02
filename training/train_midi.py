@@ -5,13 +5,12 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import OmegaConf, DictConfig
 
 import wandb
-from utils.dataloaders import set_seed, create_dataloader
-from model.dcgan import Generator, Discriminator, weights_init
+from utils.dataloaders import set_seed, create_midi_dataloader
+from model.midi_dcgan import Generator, Discriminator, weights_init
 
 
 def create_folders(cfg: DictConfig):
@@ -21,38 +20,6 @@ def create_folders(cfg: DictConfig):
         if value[-1] == "/":
             value = value[:-1]
             os.makedirs(value, exist_ok=True)
-
-
-@torch.no_grad()
-def visualize_training(
-    generator: Generator,
-    fixed_noise: torch.Tensor,
-    epoch: int,
-    batch_idx: int,
-    chart_path: str = "tmp/",
-):
-    generator.eval()
-
-    # Generate fake data using the generator and fixed noise
-    fake_data = generator(fixed_noise).detach().cpu().numpy()
-
-    # Create a figure and a grid of subplots
-    fig, axes = plt.subplots(
-        nrows=4,
-        ncols=1,
-        figsize=[10, 4],
-        gridspec_kw={"hspace": 0},
-    )
-
-    # Loop through each subplot to plot the 2-channel data
-    for i in range(len(fixed_noise)):
-        axes[i].plot(fake_data[i, 0, :])
-
-    fig.suptitle(f"Epoch {epoch}, Batch {batch_idx}")
-    fig.tight_layout()
-    # save the figure to chart_path/ folder
-    # fig.savefig(f"{chart_path}epoch_{epoch}_batch_{batch_idx}.png")
-    return fig
 
 
 def average_gradient(model: nn.Module) -> dict:
@@ -82,7 +49,8 @@ def train_epoch(
 
     progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
     for batch_idx, batch in progress_bar:
-        real_data = batch[0].to(cfg.system.device)
+        real_data = torch.stack([batch["start"], batch["duration"], batch["velocity"]], dim=1)
+        real_data = real_data.to(cfg.system.device)
         batch_size = real_data.size(0)
 
         # trick 6 from: https://github.com/soumith/ganhacks
@@ -92,7 +60,6 @@ def train_epoch(
         # train discriminator
         discriminator.zero_grad()
         label = real_labels
-        real_data = real_data.view(real_data.shape[0], 1, real_data.shape[1]).to(cfg.system.device)
         disc_real_output = discriminator(real_data).view(-1)
         discriminator_error_real = criterion(disc_real_output, label)
         discriminator_error_real.backward()
@@ -130,12 +97,8 @@ def train_epoch(
                     "D_G_z2": D_G_z2,
                     "generator/generator_gradients": generator_gradients,
                 },
-                commit=False,
+                commit=True,
             )
-            fig = visualize_training(generator, fixed_noise, epoch, batch_idx, cfg.logger.chart_path)
-            wandb.log({"fixed noise": wandb.Image(fig)}, commit=True)
-            # TODO: Might add local saving here as well
-            plt.close(fig)
 
     checkpoint = {
         "epoch": epoch,
@@ -149,7 +112,7 @@ def train_epoch(
     torch.save(checkpoint, f"{cfg.logger.checkpoint_path}{cfg.run_name}_{epoch}.pt")
 
 
-@hydra.main(version_base=None, config_path="../configs", config_name="config")
+@hydra.main(version_base=None, config_path="../configs", config_name="config_midi")
 def main(cfg: DictConfig):
     run = wandb.init(
         project=cfg.project,
@@ -211,8 +174,8 @@ def main(cfg: DictConfig):
         fixed_noise = torch.randn(num_test_noises, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
     # get loader:
     # train_loader, _, _ = create_dataloader(cfg, seed=cfg.system.seed)
-    train_loader = create_dataloader(cfg, seed=cfg.system.seed, splits=["train", "test", "validation"])
-    print(len(train_loader))
+    train_loader = create_midi_dataloader(cfg, seed=cfg.system.seed, splits=["train", "test", "validation"])
+    print("train loader", len(train_loader))
 
     # train epochs
     epochs = cfg.train.epochs if epoch == 0 else cfg.train.more_epochs
