@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -69,12 +70,15 @@ class Generator(nn.Module):
             nn.ConvTranspose1d(128, 64, 4, 2, 1, bias=False),
             nn.BatchNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.ConvTranspose1d(64, 3, 4, 2, 1, bias=False),
-            nn.Tanh(),
+            nn.ConvTranspose1d(64, 4, 4, 2, 1, bias=False),
         )
 
     def forward(self, x):
         x = self.main(x)
+        # round duration/pitch channels
+        x[:, 2, :] = torch.round(x[:, 2, :])
+        x[:, 3, :] = torch.round(x[:, 3, :])
 
+        #
         x = x[:, :, : self.output_size]
         return x

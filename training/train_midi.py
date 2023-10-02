@@ -49,7 +49,7 @@ def train_epoch(
 
     progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
     for batch_idx, batch in progress_bar:
-        real_data = torch.stack([batch["start"], batch["duration"], batch["velocity"]], dim=1)
+        real_data = torch.stack([batch["start"], batch["duration"], batch["velocity"], batch["pitch"]], dim=1)
         real_data = real_data.to(cfg.system.device)
         batch_size = real_data.size(0)
 

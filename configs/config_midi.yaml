@@ -21,7 +21,7 @@ system:
   seed: 23
 
 data:
-  channels: 3
+  channels: 4
   size: 60
 
 discriminator:
