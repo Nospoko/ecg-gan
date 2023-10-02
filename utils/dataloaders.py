@@ -87,4 +87,18 @@ def create_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "valid
 
 
 def create_midi_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]) -> DataLoader:
-    ...
+    datasets = [load_dataset("SneakyInsect/maestro-rollingsplit", split=split) for split in splits]
+    dataset = concatenate_datasets(datasets)
+
+    generator = torch.Generator().manual_seed(seed) if seed is not None else None
+
+    dataloader = DataLoader(
+        dataset,
+        batch_size=cfg.train.batch_size,
+        shuffle=True,
+        generator=generator,
+        worker_init_fn=seed_worker,
+        num_workers=cfg.train.num_workers,
+    )
+
+    return dataloader
