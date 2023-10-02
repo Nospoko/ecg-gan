@@ -64,9 +64,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def create_dataloader(
-    cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]
-) -> (DataLoader, DataLoader, DataLoader):
+def create_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]) -> DataLoader:
     # Use cleaned up dataset ~3% less samples, but less noise
     datasets = [load_dataset("SneakyInsect/ltafdb_preprocessed", split=split) for split in splits]
     dataset = concatenate_datasets(datasets)
@@ -86,3 +84,7 @@ def create_dataloader(
     )
 
     return combined_loader
+
+
+def create_midi_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]) -> DataLoader:
+    ...
