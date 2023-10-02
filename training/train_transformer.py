@@ -56,7 +56,7 @@ def train_model(cfg: DictConfig, model: nn.Module, train_dataset, optim: torch.o
     # TODO: save model and logs
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="config_transformer")
+@hydra.main(version_base=None, config_path="../configs", config_name="config_transformer")
 def main(cfg: DictConfig) -> None:
     # TODO wandb init
 

@@ -109,7 +109,7 @@ def train(model: VQVAE, train_loader: DataLoader, optimizer, criterion, cfg: Dic
     torch.save(checkpoint, f"checkpoints/{cfg.run_name}.pt")
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="config_vqvae")
+@hydra.main(version_base=None, config_path="../configs", config_name="config_vqvae")
 def main(cfg: DictConfig):
     name = cfg.run_name
     wandb.init(
