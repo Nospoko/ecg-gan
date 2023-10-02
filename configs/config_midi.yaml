@@ -32,6 +32,6 @@ generator:
   noise_size: 20
   beta: 0.5
 
-project: "ECG GAN"
+project: "MIDI GAN"
 run_date: ${now:%Y_%m_%d_%H_%M}
-run_name: "residual_discriminator_${run_date}"
+run_name: "midi_${run_date}"
