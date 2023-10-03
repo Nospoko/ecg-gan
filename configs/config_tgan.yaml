@@ -1,13 +1,11 @@
 train:
   batch_size: 16
-  epochs: 3
+  epochs: 5
   log_interval: 100
-  generator_lr: 2e-4
-  discriminator_adam_lr: 1e-5
-  num_workers: 6
-  # For SGD optimizer
-  use_sgd: true
-  discriminator_sgd_lr: 1e-4 # It's slightly slower and needs higher learning rate
+  generator_lr: 1e-4
+  discriminator_lr: 1e-5
+  num_workers: 4
+
   # for continuing training
   load_checkpoint: # change from None to checkpoint path to continue training
   more_epochs: 20 # How many more epochs to train
@@ -25,13 +23,17 @@ data:
   size: 1000
 
 discriminator:
-  neurons: [64, 128, 256, 512]
-  beta: 0.5
+  n_layers: 1
+  n_channel: 1
+  kernel_size: 8
+  dropout: 0.0
 
 generator:
-  noise_size: 300
+  noise_size: 100
   beta: 0.5
+  n_layers: 1
+  hidden_dim: 256
 
-project: "ECG GAN"
+project: "ECG TGAN"
 run_date: ${now:%Y_%m_%d_%H_%M}
-run_name: "residual_discriminator_${run_date}"
+run_name: "ECG_TGAN_${run_date}"

@@ -10,28 +10,46 @@ def weights_init(m):
         nn.init.constant_(m.bias.data, 0)
 
 
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ResidualBlock, self).__init__()
+
+        self.residual = nn.Sequential(
+            nn.Conv1d(in_channels, out_channels, 4, 2, 1, bias=False),
+            nn.BatchNorm1d(out_channels),
+            nn.LeakyReLU(0.2, inplace=True),
+            # This line calculates the padding to ensure the size remains consistent
+            nn.ConstantPad1d((0, 1), 0),
+            nn.Conv1d(out_channels, out_channels, 4, 1, 1, bias=False),
+            nn.BatchNorm1d(out_channels),
+        )
+
+        self.shortcut = nn.Sequential()
+        if in_channels != out_channels:
+            self.shortcut.add_module("conv_shortcut", nn.Conv1d(in_channels, out_channels, 4, 2, 1, bias=False))
+            self.shortcut.add_module("bn_shortcut", nn.BatchNorm1d(out_channels))
+
+    def forward(self, x):
+        return nn.LeakyReLU(0.2, inplace=True)(self.residual(x) + self.shortcut(x))
+
+
 class Discriminator(nn.Module):
     def __init__(self, input_channels, input_size, neurons):
         super().__init__()
+
         layers = []
         prev_channels = input_channels
         for n in neurons:
-            layers.extend(
-                [
-                    nn.Conv1d(prev_channels, n, 4, 2, 1, bias=False),
-                    nn.BatchNorm1d(n) if prev_channels != input_channels else nn.Identity(),
-                    nn.LeakyReLU(0.2, inplace=True),
-                ]
-            )
+            layers.append(ResidualBlock(prev_channels, n))
             prev_channels = n
+
         layers.append(nn.Conv1d(prev_channels, 1, input_size // (2 ** len(neurons)), 1, 0, bias=False))
         layers.append(nn.Sigmoid())
 
         self.main = nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.main(x)
-        return x
+        return self.main(x)
 
 
 class Generator(nn.Module):

@@ -1,6 +1,6 @@
 # ecg-gan
 
-Check out this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/bpr8skng) to get a feel for the baseline model or run `python train.py` to reproduce the results
+Check out this [wandb run](https://wandb.ai/sjanas/ECG%20GAN/runs/fz2ptaxy) to get a feel for the baseline model or run `python train.py` to reproduce the results
 
 ### Suggested reading
 
