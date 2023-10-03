@@ -71,13 +71,18 @@ class Generator(nn.Module):
             nn.BatchNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(64, 4, 4, 2, 1, bias=False),
+            # Ensure channels in positive range
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
         x = self.main(x)
-        # round duration/pitch channels
-        x[:, 2, :] = torch.round(x[:, 2, :])
-        x[:, 3, :] = torch.round(x[:, 3, :])
+
+        # Ensure 2nd channel has integers in 0-127 range
+        x[:, 2, :] = torch.round(x[:, 2, :] * 127)
+
+        # Ensure 3rd channel has integers in 0-127 range
+        x[:, 3, :] = torch.round(x[:, 3, :] * 127)
 
         x = x[:, :, : self.output_size]
         return x
