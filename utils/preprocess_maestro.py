@@ -4,6 +4,20 @@ import numpy as np
 from datasets import Dataset, DatasetDict, load_dataset
 
 
+def normalize_values(segments, global_max, global_min):
+    """Normalize a list of segments (list of lists) to the [0, 1] range using numpy."""
+    # Convert segments to a numpy array
+    segments_array = np.array(segments)
+
+    # Normalize the entire array
+    normalized_array = (segments_array - global_min) / (global_max - global_min)
+
+    # Convert the normalized numpy array back to a list of lists
+    normalized_segments = normalized_array.tolist()
+
+    return normalized_segments
+
+
 def create_dict_from_split(split, rolling_window_size=1024, hop_size=256):
     # Initialize lists to hold data for each window from all tracks
     names = []
@@ -57,6 +71,41 @@ if __name__ == "__main__":
     train_dict = create_dict_from_split(train, rolling_window_size, hop_size)
     validation_dict = create_dict_from_split(validation, rolling_window_size, hop_size)
     test_dict = create_dict_from_split(test, rolling_window_size, hop_size)
+    # find global max and min
+    global_start_max = max(
+        max(np.max(segment) for segment in train_dict["start"]),
+        max(np.max(segment) for segment in validation_dict["start"]),
+        max(np.max(segment) for segment in test_dict["start"]),
+    )
+    global_start_min = min(
+        min(np.min(segment) for segment in train_dict["start"]),
+        min(np.min(segment) for segment in validation_dict["start"]),
+        min(np.min(segment) for segment in test_dict["start"]),
+    )
+
+    global_duration_max = max(
+        max(np.max(segment) for segment in train_dict["duration"]),
+        max(np.max(segment) for segment in validation_dict["duration"]),
+        max(np.max(segment) for segment in test_dict["duration"]),
+    )
+    global_duration_min = min(
+        min(np.min(segment) for segment in train_dict["duration"]),
+        min(np.min(segment) for segment in validation_dict["duration"]),
+        min(np.min(segment) for segment in test_dict["duration"]),
+    )
+    print("start max, start min")
+    print(global_start_max, global_start_min)
+    print("duration max, duration min")
+    print(global_duration_max, global_duration_min)
+
+    train_dict["start"] = normalize_values(train_dict["start"], global_start_max, global_start_min)
+    train_dict["duration"] = normalize_values(train_dict["duration"], global_duration_max, global_duration_min)
+
+    validation_dict["start"] = normalize_values(validation_dict["start"], global_start_max, global_start_min)
+    validation_dict["duration"] = normalize_values(validation_dict["duration"], global_duration_max, global_duration_min)
+
+    test_dict["start"] = normalize_values(test_dict["start"], global_start_max, global_start_min)
+    test_dict["duration"] = normalize_values(test_dict["duration"], global_duration_max, global_duration_min)
 
     DATASET_NAME = "SneakyInsect/maestro-rollingsplit"
     HUGGINGFACE_TOKEN = os.environ["HUGGINGFACE_TOKEN"]
