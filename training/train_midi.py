@@ -39,10 +39,13 @@ def visualize_progress(generator: nn.Module, noise: torch.Tensor, epoch: int, ba
     # We can thus squeeze the first dimension to get a tensor of shape (channels, noise_size)
     fake_data = generator(noise).squeeze(0).detach().cpu().numpy()
 
-    dstart = fake_data[0, :]
-    duration = fake_data[1, :]
+    dstart = fake_data[0, :] * 48.916666666666515
+    duration = fake_data[1, :] * (99.45833333333331 - 0.0010416666666515084) + 0.0010416666666515084
     velocity = fake_data[2, :] * 127
     pitch = fake_data[3, :] * 127
+    # round to nearest integer
+    pitch = pitch.round().astype(int)
+    velocity = velocity.round().astype(int)
 
     fortepyan_midi = to_fortepyan_midi(pitch, dstart, duration, velocity)
     fig = plot_piano_roll(fortepyan_midi, title=f"Epoch {epoch}")
