@@ -4,7 +4,7 @@ import torch.nn as nn
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
-        nn.init.normal_(m.weight.data, 0.0, 0.02)
+        nn.init.kaiming_normal_(m.weight.data, a=0.2, mode="fan_in", nonlinearity="leaky_relu")
     elif classname.find("BatchNorm") != -1:
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
@@ -58,24 +58,27 @@ class Generator(nn.Module):
         self.output_size = output_size
         self.main = nn.Sequential(
             nn.ConvTranspose1d(noise_size, 512, 3, 1, 0, bias=False),
-            nn.BatchNorm1d(512),
+            nn.InstanceNorm1d(512),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(512, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm1d(256),
+            nn.InstanceNorm1d(256),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(256, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm1d(128),
+            nn.InstanceNorm1d(128),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(128, 64, 4, 2, 1, bias=False),
-            nn.BatchNorm1d(64),
+            nn.InstanceNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(64, 4, 4, 2, 1, bias=False),
             # Ensure channels in positive range
             nn.Sigmoid(),
         )
 
-    def forward(self, x):
-        x = self.main(x)
+    def forward(self, x, verbose=False):
+        for layer in self.main:
+            x = layer(x)
+            if verbose:
+                print(f"min, max values after {layer.__class__.__name__}: {x.min()}, {x.max()}")
 
         x = x[:, :, : self.output_size]
         return x

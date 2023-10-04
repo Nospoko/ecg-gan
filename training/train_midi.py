@@ -106,12 +106,14 @@ def train_epoch(
         disc_output_after_update = discriminator(fake_data).view(-1)
         generator_error = criterion(disc_output_after_update, label)
         generator_error.backward()
+        torch.nn.utils.clip_grad_norm_(generator.parameters(), max_norm=1)
         D_G_z2 = disc_output_after_update.mean().item()  # Discriminator's output after updating the generator, fake data
         gen_optimizer.step()
 
         # log to wandb
         if batch_idx % cfg.train.log_interval == 0:
             generator_gradients = average_gradient(generator)
+            discriminator_gradients = average_gradient(discriminator)
             wandb.log(
                 {
                     "generator_error": generator_error.item(),
@@ -120,6 +122,7 @@ def train_epoch(
                     "D_G_z1": D_G_z1,
                     "D_G_z2": D_G_z2,
                     "generator/generator_gradients": generator_gradients,
+                    "discriminator/discriminator_gradients": discriminator_gradients,
                 },
                 commit=False,
             )
