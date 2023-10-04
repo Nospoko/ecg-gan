@@ -31,3 +31,9 @@ def to_fortepyan_midi(
 def plot_piano_roll(piece: ff.MidiPiece, title: str = "Piano Roll") -> plt.Figure:
     fig = ff.view.draw_pianoroll_with_velocities(piece, title=title)
     return fig
+
+
+def denormalize(data: np.ndarray, min: float, max: float) -> np.ndarray:
+    min_max = data * (max - min) + min
+    # denormalize the log scaling
+    return np.exp(min_max) - 1

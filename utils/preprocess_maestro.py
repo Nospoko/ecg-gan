@@ -4,6 +4,12 @@ import numpy as np
 from datasets import Dataset, DatasetDict, load_dataset
 
 
+def log_scale(segments):
+    segments = np.array(segments)
+    segments = np.log(segments + 1)
+    return segments.tolist()
+
+
 def normalize_values(segments, global_max, global_min):
     """Normalize a list of segments (list of lists) to the [0, 1] range using numpy."""
     # Convert segments to a numpy array
@@ -12,10 +18,7 @@ def normalize_values(segments, global_max, global_min):
     # Normalize the entire array
     normalized_array = (segments_array - global_min) / (global_max - global_min)
 
-    # Convert the normalized numpy array back to a list of lists
-    normalized_segments = normalized_array.tolist()
-
-    return normalized_segments
+    return normalized_array.tolist()
 
 
 def create_dict_from_split(split, rolling_window_size=1024, hop_size=256):
@@ -79,6 +82,16 @@ if __name__ == "__main__":
     train_dict = create_dict_from_split(train, rolling_window_size, hop_size)
     validation_dict = create_dict_from_split(validation, rolling_window_size, hop_size)
     test_dict = create_dict_from_split(test, rolling_window_size, hop_size)
+
+    train_dict["start"] = log_scale(train_dict["start"])
+    train_dict["duration"] = log_scale(train_dict["duration"])
+
+    validation_dict["start"] = log_scale(validation_dict["start"])
+    validation_dict["duration"] = log_scale(validation_dict["duration"])
+
+    test_dict["start"] = log_scale(test_dict["start"])
+    test_dict["duration"] = log_scale(test_dict["duration"])
+
     # find global max and min
     global_start_max = max(
         max(np.max(segment) for segment in train_dict["start"]),
