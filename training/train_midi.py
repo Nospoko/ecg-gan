@@ -35,13 +35,14 @@ def average_gradient(model: nn.Module) -> dict:
 @torch.no_grad()
 def visualize_progress(generator: nn.Module, noise: torch.Tensor, epoch: int, batch_idx: int) -> plt.Figure:
     generator.eval()
-    fake_data = generator(noise).detach().cpu().numpy()
-    # pick noise nr 0 for now
-    # TODO: change to plot all noises
-    dstart = fake_data[0, 0, :]
-    duration = fake_data[0, 1, :]
-    velocity = fake_data[0, 2, :]
-    pitch = fake_data[0, 3, :]
+    # As mentioned below, noise is a tensor of shape (1, channels, noise_size)
+    # We can thus squeeze the first dimension to get a tensor of shape (channels, noise_size)
+    fake_data = generator(noise).squeeze(0).detach().cpu().numpy()
+
+    dstart = fake_data[0, :]
+    duration = fake_data[1, :]
+    velocity = fake_data[2, :]
+    pitch = fake_data[3, :]
 
     fortepyan_midi = to_fortepyan_midi(pitch, dstart, duration, velocity)
     fig = plot_piano_roll(fortepyan_midi, title=f"Epoch {epoch}")
@@ -190,7 +191,7 @@ def main(cfg: DictConfig):
         fixed_noise = checkpoint["fixed_noise"]
         epoch = checkpoint["epoch"]
     else:
-        num_test_noises = 4
+        num_test_noises = 1  # we could connect png files but I don't think it's a good idea
         epoch = 0
         # Fixed noise, used for visualizing training process
         fixed_noise = torch.randn(num_test_noises, cfg.generator.noise_size, cfg.data.channels, device=cfg.system.device)
