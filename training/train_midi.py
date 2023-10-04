@@ -41,8 +41,8 @@ def visualize_progress(generator: nn.Module, noise: torch.Tensor, epoch: int, ba
 
     dstart = fake_data[0, :]
     duration = fake_data[1, :]
-    velocity = fake_data[2, :]
-    pitch = fake_data[3, :]
+    velocity = fake_data[2, :] * 127
+    pitch = fake_data[3, :] * 127
 
     fortepyan_midi = to_fortepyan_midi(pitch, dstart, duration, velocity)
     fig = plot_piano_roll(fortepyan_midi, title=f"Epoch {epoch}")

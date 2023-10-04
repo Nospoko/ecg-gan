@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -77,12 +76,6 @@ class Generator(nn.Module):
 
     def forward(self, x):
         x = self.main(x)
-
-        # Ensure 2nd channel has integers in 0-127 range
-        x[:, 2, :] = torch.round(x[:, 2, :] * 127)
-
-        # Ensure 3rd channel has integers in 0-127 range
-        x[:, 3, :] = torch.round(x[:, 3, :] * 127)
 
         x = x[:, :, : self.output_size]
         return x
