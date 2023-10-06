@@ -39,13 +39,21 @@ def plot_piano_roll(piece: ff.MidiPiece, title: str = "Piano Roll") -> plt.Figur
 def render_midi_to_mp3(piece, filename):
     midi_filename = os.path.basename(filename)
 
-    os.makedirs(os.path.join("tmp"), exist_ok=True)
-    mp3_path = os.path.join("tmp", midi_filename)
+    os.makedirs(os.path.join("tmp", "mp3"), exist_ok=True)
+    mp3_path = os.path.join("tmp", "mp3", midi_filename)
 
     track = piece.to_midi()
     render_audio.midi_to_mp3(track, mp3_path)
 
     return mp3_path
+
+
+def save_midi(piece, filename):
+    os.makedirs(os.path.join("tmp", "midi"), exist_ok=True)
+    filename = os.path.join("tmp", "midi", filename)
+    piece = piece.to_midi()
+    piece.write(filename)
+    print(f"Saved midi to {filename}")
 
 
 def denormalize(data: np.ndarray, min: float, max: float) -> np.ndarray:

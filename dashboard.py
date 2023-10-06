@@ -5,7 +5,7 @@ import streamlit as st
 
 from model.midi_dcgan import Generator
 from utils.checkpoint_utils import load_checkpoint
-from evals.midi_tools import denormalize, plot_piano_roll, to_fortepyan_midi, render_midi_to_mp3
+from evals.midi_tools import save_midi, denormalize, plot_piano_roll, to_fortepyan_midi, render_midi_to_mp3
 
 st.set_page_config(layout="wide", page_title="MIDI DCGAN", page_icon=":musical_keyboard")
 
@@ -37,6 +37,9 @@ def display_audio(fortepyan_midi, num=0):
         piece=fortepyan_midi,
         filename=f"generation_{num}.mp3",
     )
+    # save midi file
+    save_midi(fortepyan_midi, filename=f"generation_{num}.mid")
+
     st.pyplot(fig)
     st.audio(original_mp3_path, format="audio/mp3", start_time=0)
 
