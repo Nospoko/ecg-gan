@@ -60,13 +60,13 @@ class Generator(nn.Module):
             nn.ConvTranspose1d(noise_size, 512, 3, 1, 0, bias=False),
             nn.InstanceNorm1d(512),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.ConvTranspose1d(512, 256, 4, 2, 1, bias=False),
+            nn.ConvTranspose1d(512, 256, 4, 1, 1, bias=False),
             nn.InstanceNorm1d(256),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(256, 128, 4, 2, 1, bias=False),
             nn.InstanceNorm1d(128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.ConvTranspose1d(128, 64, 4, 2, 1, bias=False),
+            nn.ConvTranspose1d(128, 64, 4, 2, 0, bias=False),
             nn.InstanceNorm1d(64),
             nn.LeakyReLU(0.2, inplace=True),
             nn.ConvTranspose1d(64, 4, 4, 2, 1, bias=False),
@@ -75,10 +75,5 @@ class Generator(nn.Module):
         )
 
     def forward(self, x, verbose=False):
-        for layer in self.main:
-            x = layer(x)
-            if verbose:
-                print(f"min, max values after {layer.__class__.__name__}: {x.min()}, {x.max()}")
-
-        x = x[:, :, : self.output_size]
+        x = self.main(x)
         return x

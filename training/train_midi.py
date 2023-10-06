@@ -37,7 +37,7 @@ def visualize_progress(generator: nn.Module, noise: torch.Tensor, epoch: int, ba
     generator.eval()
     # As mentioned below, noise is a tensor of shape (1, channels, noise_size)
     # We can thus squeeze the first dimension to get a tensor of shape (channels, noise_size)
-    fake_data = generator(noise).squeeze(0).detach().cpu().numpy()
+    fake_data = generator(noise, verbose=True).squeeze(0).detach().cpu().numpy()
 
     # take a look at normalization_showcase.ipynb for more info
     dstart = denormalize(fake_data[0, :], 0.0, 3.910354948327446)  # values from preprocess_maestro
