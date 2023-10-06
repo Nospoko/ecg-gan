@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from model.dcgan import Generator
 from utils.dataloaders import set_seed
-from evals.checkpoint_utils import load_checkpoint
+from utils.checkpoint_utils import load_checkpoint
 
 
 def interpolate(noise1: torch.Tensor, noise2: torch.Tensor, num_interpolations: int) -> torch.Tensor:

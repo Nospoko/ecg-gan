@@ -47,6 +47,26 @@ class CustomECGDataset(Dataset):
         return channel1, channel2
 
 
+class CustomMidiDataset(Dataset):
+    def __init__(self, hf_dataset):
+        self.hf_dataset = hf_dataset
+
+    def __len__(self):
+        return len(self.hf_dataset)
+
+    def __getitem__(self, index):
+        sample = self.hf_dataset[index]
+
+        # Extract and preprocess MIDI data.
+        name = sample["name"]
+        start = torch.tensor(sample["start"], dtype=torch.float32)
+        end = torch.tensor(sample["duration"], dtype=torch.float32)
+        pitch = torch.tensor(sample["pitch"], dtype=torch.float32)  # to avoid casting to float when training
+        velocity = torch.tensor(sample["velocity"], dtype=torch.float32)
+
+        return {"name": name, "start": start, "duration": end, "pitch": pitch, "velocity": velocity}
+
+
 def set_seed(seed, deterministic=True):
     # https://pytorch.org/docs/stable/notes/randomness.html
     torch.manual_seed(seed)
@@ -64,9 +84,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def create_dataloader(
-    cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]
-) -> (DataLoader, DataLoader, DataLoader):
+def create_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]) -> DataLoader:
     # Use cleaned up dataset ~3% less samples, but less noise
     datasets = [load_dataset("SneakyInsect/ltafdb_preprocessed", split=split) for split in splits]
     dataset = concatenate_datasets(datasets)
@@ -86,3 +104,23 @@ def create_dataloader(
     )
 
     return combined_loader
+
+
+def create_midi_dataloader(cfg: DictConfig, seed: int = None, splits=["train", "validation", "test"]) -> DataLoader:
+    datasets = [load_dataset("SneakyInsect/maestro-rollingsplit", split=split) for split in splits]
+    dataset = concatenate_datasets(datasets)
+
+    midi_dataset = CustomMidiDataset(dataset)
+
+    generator = torch.Generator().manual_seed(seed) if seed is not None else None
+
+    dataloader = DataLoader(
+        midi_dataset,
+        batch_size=cfg.train.batch_size,
+        shuffle=True,
+        generator=generator,
+        worker_init_fn=seed_worker,
+        num_workers=cfg.train.num_workers,
+    )
+
+    return dataloader
