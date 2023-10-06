@@ -3,10 +3,10 @@ train:
   epochs: 5
   log_interval: 100
   generator_lr: 2e-4
-  discriminator_adam_lr: 1e-5
+  discriminator_adam_lr: 1e-4
   num_workers: 6
   # For SGD optimizer
-  use_sgd: true
+  use_sgd: false
   discriminator_sgd_lr: 2e-4 # It's slightly slower and needs higher learning rate
   # for continuing training
   load_checkpoint: # change from None to checkpoint path to continue training
